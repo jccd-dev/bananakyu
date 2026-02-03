@@ -1,0 +1,10 @@
+{
+  "editor.fontFamily": "Geist Mono",
+  "editor.fontLigatures": true,
+  "editor.fontWeight": "400",
+  "editor.fontSize": 14,
+  "editor.lineHeight": 1.5,
+  "editor.letterSpacing": 0.5,
+  "editor.tabSize": 4,
+  "editor.minimap.maxColumn": 50
+}
