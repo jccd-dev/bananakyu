@@ -1,26 +1,54 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { index, pgTableCreator } from "drizzle-orm/pg-core";
+import { 
+  pgSchema, 
+  pgTable, 
+  uuid, 
+  varchar, 
+  text, 
+  timestamp, 
+  pgEnum 
+} from "drizzle-orm/pg-core";
 
-/**
- * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
- * database instance for multiple projects.
- *
- * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
- */
-export const createTable = pgTableCreator((name) => `bananakyu_${name}`);
+export const authSchema = pgSchema("auth");
 
-export const posts = createTable(
-  "post",
-  (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .$defaultFn(() => /* @__PURE__ */ new Date())
-      .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-  }),
-  (t) => [index("name_idx").on(t.name)],
-);
+export const authUsers =  authSchema.table("users", {
+  id: uuid("id").primaryKey(),
+});
+
+// use to point the supabase auth user to the database for cascade delete
+export const profiles = pgTable("profiles", {
+  id: uuid("id")
+    .primaryKey()
+    .references(() =>authUsers.id, {onDelete: "cascade"}),
+  displayName: varchar("display_name"),
+  avatarUrl: text("avatar_url"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const jobStatusEnum = pgEnum("job_status", [
+  "TO_APPLY",
+  "APPLIED",
+  "FOR_INTERVIEW",
+  "INTERVIEWING",
+  "OFFER",
+  "REJECTED",
+]);
+
+export const jobs = pgTable("jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references( ()=> profiles.id, {onDelete: "cascade"}),
+  company: varchar("company").notNull(),
+  position: varchar("position").notNull(),
+  status: jobStatusEnum("status").default("TO_APPLY").notNull(),
+  url: text("url"),
+  salary: varchar("salary"),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+
+
