@@ -28,12 +28,17 @@ export const profiles = pgTable("profiles", {
 });
 
 export const jobStatusEnum = pgEnum("job_status", [
-  "TO_APPLY",
+  "APPLYING",
   "APPLIED",
   "FOR_INTERVIEW",
   "INTERVIEWING",
   "OFFER",
   "REJECTED",
+  "NO_RESPONSE",
+  "WITHDRAW",
+  "HIRED",
+  "NEGOTIATING",
+  "ON_HOLD"
 ]);
 
 export const jobs = pgTable("jobs", {
@@ -43,9 +48,10 @@ export const jobs = pgTable("jobs", {
     .references( ()=> profiles.id, {onDelete: "cascade"}),
   company: varchar("company").notNull(),
   position: varchar("position").notNull(),
-  status: jobStatusEnum("status").default("TO_APPLY").notNull(),
+  status: jobStatusEnum("status").default("APPLYING").notNull(),
   url: text("url"),
   salary: varchar("salary"),
+  jobDescription: text("job_description"),
   note: text("note"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })

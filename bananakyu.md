@@ -11,6 +11,18 @@
 _Focus: Speed and organization. Solve the problem of "Where did I apply?"_
 
 - **Job Pipeline (Board/List View):** Visualize the journey from "To Apply" → "Applied" → "Interview" → "Offer."
+  - **Kanban View:** Drag and drop cards between columns (APPLYING,
+    APPLIED,
+    FOR_INTERVIEW,
+    INTERVIEWING,
+    OFFER,
+    REJECTED,
+    NO_RESPONSE,
+    WITHDRAW,
+    HIRED,
+    NEGOTIATING,
+    ON_HOLD).
+  - **List View:** A compact, sortable table for power users who want to see more at a glance.
 - **Quick Add:** A streamlined form to log company, position, and job URL.
 - **The Logbook:** Simple markdown-supported notes for each job (interview dates, contact names).
 - **Smart Search:** Quickly filter your applications by company name or status.
@@ -50,9 +62,9 @@ _Focus: Automation and competitive edge. Make users pay to save time._
 
 ### Stage 1: Infrastructure & Scaffolding
 
-- [ ] Initialize T3 project (`create-t3-app`).
-- [ ] Connect Supabase project and local `.env` setup.
-- [ ] Configure Drizzle and push initial schema to Postgres.
+- [x] Initialize T3 project (`create-t3-app`).
+- [x] Connect Supabase project and local `.env` setup.
+- [x] Configure Drizzle and push initial schema to Postgres.
 
 ### Stage 2: Identity (Auth)
 

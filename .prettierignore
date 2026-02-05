@@ -1,0 +1,7 @@
+# Ignore specific files and folders
+node_modules
+.next
+.env
+.env.local
+package-lock.json
+yarn.lock
