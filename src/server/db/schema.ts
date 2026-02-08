@@ -1,31 +1,46 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { 
-  pgSchema, 
-  pgTable, 
-  uuid, 
-  varchar, 
-  text, 
-  timestamp, 
-  pgEnum 
+import {
+  pgSchema,
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  timestamp,
+  pgEnum,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
+import { authenticatedRole, authUid } from "drizzle-orm/supabase";
+import { sql } from "drizzle-orm";
 
 export const authSchema = pgSchema("auth");
 
-export const authUsers =  authSchema.table("users", {
+export const authUsers = authSchema.table("users", {
   id: uuid("id").primaryKey(),
 });
 
 // use to point the supabase auth user to the database for cascade delete
-export const profiles = pgTable("profiles", {
-  id: uuid("id")
-    .primaryKey()
-    .references(() =>authUsers.id, {onDelete: "cascade"}),
-  displayName: varchar("display_name"),
-  avatarUrl: text("avatar_url"),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const profiles = pgTable(
+  "profiles",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    displayName: varchar("display_name"),
+    avatarUrl: text("avatar_url"),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    //RLS: Users can only see and update thier own profile
+    pgPolicy("profiles_self_access", {
+      for: "all",
+      to: authenticatedRole,
+      using: sql`${authUid} = ${table.id}`,
+      withCheck: sql`${authUid} = ${table.id}`,
+    }),
+  ],
+);
 
 export const jobStatusEnum = pgEnum("job_status", [
   "APPLYING",
@@ -38,23 +53,31 @@ export const jobStatusEnum = pgEnum("job_status", [
   "WITHDRAW",
   "HIRED",
   "NEGOTIATING",
-  "ON_HOLD"
+  "ON_HOLD",
 ]);
 
-export const jobs = pgTable("jobs", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references( ()=> profiles.id, {onDelete: "cascade"}),
-  company: varchar("company").notNull(),
-  position: varchar("position").notNull(),
-  status: jobStatusEnum("status").default("APPLYING").notNull(),
-  url: text("url"),
-  salary: varchar("salary"),
-  jobDescription: text("job_description"),
-  note: text("note"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-})
-
-
-
+export const jobs = pgTable(
+  "jobs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    company: varchar("company").notNull(),
+    position: varchar("position").notNull(),
+    status: jobStatusEnum("status").default("APPLYING").notNull(),
+    url: text("url"),
+    salary: varchar("salary"),
+    jobDescription: text("job_description"),
+    note: text("note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    pgPolicy("jobs_individual_access", {
+      for: "all",
+      to: authenticatedRole,
+      using: sql`${authUid} = ${table.userId}`,
+      withCheck: sql`${authUid} = ${table.userId}`,
+    }),
+  ],
+);
